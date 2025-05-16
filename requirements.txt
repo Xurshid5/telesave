@@ -1,3 +1,5 @@
 aiogram
-yt-dlp
 instaloader
+yt-dlp
+fastapi
+uvicorn
