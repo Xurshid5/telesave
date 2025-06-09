@@ -8,3 +8,10 @@ uvicorn
 flask
 gunicorn
 requests
+
+
+python-telegram-bot
+gunicorn
+
+
+worker: python app.py
