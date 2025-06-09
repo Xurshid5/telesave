@@ -1,21 +1,4 @@
-aiogram
-instaloader
-yt-dlp
-fastapi
-uvicorn
-
-
-flask
-gunicorn
-requests
-
-
-python-telegram-bot
-gunicorn
-
-
-
-beautifulsoup4
-
-
-pip freeze > requirements.txt
+package_name==version
+flask==2.2.2
+requests==2.28.1
+...
