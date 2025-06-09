@@ -13,7 +13,7 @@ import uvicorn
 import threading
 
 # Telegram bot tokeni (o'zgartiring)
-TOKEN = "8177754909:AAFsxQe-NhTymNMuWExXUzztzqBENKTYWfo"
+TOKEN = "8177754909:AAGhhUP1AEr4WWePAfWwN0mipB7lFxFfVlc"
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()

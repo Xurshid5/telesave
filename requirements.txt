@@ -14,4 +14,8 @@ python-telegram-bot
 gunicorn
 
 
-worker: python app.py
+
+beautifulsoup4
+
+
+pip freeze > requirements.txt
