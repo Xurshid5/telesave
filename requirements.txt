@@ -3,3 +3,8 @@ instaloader
 yt-dlp
 fastapi
 uvicorn
+
+
+flask
+gunicorn
+requests
