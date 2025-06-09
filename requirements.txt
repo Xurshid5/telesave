@@ -5,3 +5,6 @@ pydantic==2.5.3
 instaloader
 Flask
 ...
+requests
+flask
+python-telegram-bot
