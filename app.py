@@ -13,8 +13,12 @@ import uvicorn
 import threading
 from dotenv import load_dotenv  # <-- Qo‘shildi
 
-# .env faylni yuklash
-load_dotenv()  # <-- Qo‘shildi
+from dotenv import load_dotenv  # .env ni o‘qish uchun
+load_dotenv()  # .env faylni yuklaydi
+
+
+
+
 
 # Telegram bot tokeni .env dan olinadi
 TOKEN = os.getenv("TOKEN")  # <-- O‘zgartirildi
