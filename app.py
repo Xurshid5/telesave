@@ -12,6 +12,13 @@ from fastapi import FastAPI
 import uvicorn
 import threading
 
+import os
+
+def start_api():
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
+
+
 # Telegram bot tokeni (o'zgartiring)
 TOKEN = "8177754909:AAGhhUP1AEr4WWePAfWwN0mipB7lFxFfVlc"
 
