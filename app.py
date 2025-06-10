@@ -11,22 +11,20 @@ from aiogram import Router
 from fastapi import FastAPI
 import uvicorn
 import threading
+from dotenv import load_dotenv  # <-- Qo‘shildi
 
-import os
+# .env faylni yuklash
+load_dotenv()  # <-- Qo‘shildi
 
-def start_api():
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
-
-
-# Telegram bot tokeni (o'zgartiring)
-TOKEN = "8177754909:AAGhhUP1AEr4WWePAfWwN0mipB7lFxFfVlc"
+# Telegram bot tokeni .env dan olinadi
+TOKEN = os.getenv("TOKEN")  # <-- O‘zgartirildi
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 router = Router()
 
 app = FastAPI()  # FastAPI ilovasi
+
 
 # --- Yuklash funksiyalari ---
 
