@@ -39,21 +39,10 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "OK", 200  # UptimeRobot 200 status kodini kutadi
+    return "Bot is running", 200  # UptimeRobot 200 status kutadi
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000)  # Render faqat 8000-portni qo'llab-quvvatlaydi
-
-def start_api():
-    port = int(os.environ.get("PORT", 8000))
-    uvicorn.run(app, host="0.0.0.0", port=port)
-
-from dotenv import load_dotenv  # .env ni o‘qish uchun
-load_dotenv()  # .env faylni yuklaydi
-
-
-
-
 
 
 # Telegram bot tokeni .env dan olinadi
