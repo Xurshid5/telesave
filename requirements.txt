@@ -4,9 +4,11 @@ uvicorn
 python-dotenv
 yt-dlp
 instaloader
-aiogram==3.4.1
-fastapi
-uvicorn
-python-dotenv
-yt-dlp
-instaloader
+
+
+
+
+
+flask>=2.0.0
+python-telegram-bot>=13.0
+gunicorn
