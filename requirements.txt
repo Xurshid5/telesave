@@ -1,0 +1,12 @@
+aiogram==3.4.1
+fastapi
+uvicorn
+python-dotenv
+yt-dlp
+instaloader
+aiogram==3.4.1
+fastapi
+uvicorn
+python-dotenv
+yt-dlp
+instaloader

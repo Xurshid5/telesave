@@ -11,7 +11,9 @@ from aiogram import Router
 from fastapi import FastAPI
 import uvicorn
 import threading
+from dotenv import load_dotenv  # <-- Qo‘shildi
 
+<<<<<<< HEAD
 import os
 
 # Agar Flask/FastAPI ishlatayotgan bo'lsangiz:
@@ -28,16 +30,24 @@ if __name__ == '__main__':
 def start_api():
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
+=======
+from dotenv import load_dotenv  # .env ni o‘qish uchun
+load_dotenv()  # .env faylni yuklaydi
+>>>>>>> ec8f64c1b49c9d698c6160393d4f499af652ee78
 
 
-# Telegram bot tokeni (o'zgartiring)
-TOKEN = "8177754909:AAGhhUP1AEr4WWePAfWwN0mipB7lFxFfVlc"
+
+
+
+# Telegram bot tokeni .env dan olinadi
+TOKEN = os.getenv("TOKEN")  # <-- O‘zgartirildi
 
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 router = Router()
 
 app = FastAPI()  # FastAPI ilovasi
+
 
 # --- Yuklash funksiyalari ---
 
