@@ -16,6 +16,23 @@ from dotenv import load_dotenv  # <-- Qo‘shildi
 <<<<<<< HEAD
 import os
 
+import telegram
+from telegram.ext import Updater
+
+# Yangi parametr qo'shing
+updater = Updater(token='YOUR_BOT_TOKEN', use_context=True)
+bot = updater.bot
+
+# Avvalgi webhooklarni o'chirish (agar webhook ishlatgan bo'lsangiz)
+bot.delete_webhook()
+
+# Polling ni boshlash
+updater.start_polling(
+    drop_pending_updates=True,  # Qolgan updatelarni o'tkazib yuborish
+    timeout=10,
+    clean=True
+)
+
 # Agar Flask/FastAPI ishlatayotgan bo'lsangiz:
 from flask import Flask
 app = Flask(__name__)
