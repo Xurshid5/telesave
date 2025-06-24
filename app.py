@@ -13,7 +13,7 @@ import uvicorn
 import threading
 from dotenv import load_dotenv  # <-- Qo‘shildi
 
-<<<<<<< HEAD
+
 import os
 
 import telegram
