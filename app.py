@@ -47,10 +47,10 @@ if __name__ == '__main__':
 def start_api():
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
-=======
+
 from dotenv import load_dotenv  # .env ni o‘qish uchun
 load_dotenv()  # .env faylni yuklaydi
->>>>>>> ec8f64c1b49c9d698c6160393d4f499af652ee78
+
 
 
 
