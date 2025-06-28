@@ -1,19 +1,16 @@
 import os
 import asyncio
 import shutil
-import instaloader
 from yt_dlp import YoutubeDL
-from aiogram import Bot, Dispatcher, types
-from aiogram.types import FSInputFile
+from aiogram import Bot, Dispatcher, types, Router
 from aiogram.filters import Command
-from aiogram import Router
-
+from aiogram.types import FSInputFile
 from fastapi import FastAPI
 import uvicorn
 import threading
 from dotenv import load_dotenv
 
-# .env faylni yuklaymiz
+# .env faylini yuklaymiz
 load_dotenv()
 TOKEN = os.getenv("TOKEN")
 
@@ -26,98 +23,72 @@ dp.include_router(router)
 # FastAPI ilova
 app = FastAPI()
 
-# --- Yuklab olish funksiyalari ---
-async def download_instagram_media(url: str):
-    loader = instaloader.Instaloader(dirname_pattern="downloads", save_metadata=False, download_comments=False)
-    try:
-        shortcode = url.split("/")[-2]
-        post = instaloader.Post.from_shortcode(loader.context, shortcode)
-        loader.download_post(post, target="")
-        for file in os.listdir("downloads"):
-            if file.endswith((".mp4", ".jpg", ".jpeg", ".png")):
-                return os.path.join("downloads", file)
-    except Exception as e:
-        print(f"❌ Instagramdan yuklashda xatolik: {e}")
-        return None
-
-async def download_youtube_media(url: str):
+# Yuklash funktsiyasi (universal, cookie bilan)
+async def download_video(url: str):
+    filename = "downloads/%(title)s.%(ext)s"
     ydl_opts = {
-        'format': 'best',
-        'outtmpl': 'downloads/%(title)s.%(ext)s',
+        'outtmpl': filename,
+        'cookies': 'cookies.txt',
+        'format': 'bestvideo+bestaudio/best',
+        'merge_output_format': 'mp4',
+        'quiet': True
     }
     try:
         with YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(url, download=True)
-            file_path = ydl.prepare_filename(info_dict)
-            return file_path
+            info = ydl.extract_info(url, download=True)
+            filepath = ydl.prepare_filename(info)
+            return filepath
     except Exception as e:
-        print(f"❌ YouTubedan yuklashda xatolik: {e}")
+        print(f"❌ Yuklashda xatolik: {e}")
         return None
 
-async def download_tiktok_media(url: str):
-    return await download_youtube_media(url)
-
-# --- Komandalar ---
+# Start komandasi
 @router.message(Command("start"))
-async def start_command(message: types.Message):
-    await message.answer(
-        "👋 Salom! Instagram, YouTube va TikTok videolarini yuklab beruvchi botga xush kelibsiz.\n\n"
-        "📥 Video havolasini yuboring."
-    )
+async def start_cmd(message: types.Message):
+    await message.answer("👋 Botga xush kelibsiz! foydalanuvchi\n📥 Instagram, YouTube yoki TikTok link yuboring.")
 
+# Link kelganda ishlovchi funksiya
 @router.message()
-async def handle_media_request(message: types.Message):
+async def handle_media(message: types.Message):
     url = message.text.strip()
-    progress_message = await message.answer("⏳ Yuklanmoqda, biroz kuting...")
+    msg = await message.answer("⏳ Yuklanmoqda...")
 
-    if "instagram.com" in url:
-        media_path = await download_instagram_media(url)
-    elif "youtube.com" in url or "youtu.be" in url:
-        media_path = await download_youtube_media(url)
-    elif "tiktok.com" in url:
-        media_path = await download_tiktok_media(url)
+    if any(domain in url for domain in ["instagram.com", "youtube.com", "youtu.be", "tiktok.com"]):
+        path = await download_video(url)
+        if path and os.path.exists(path):
+            file = FSInputFile(path)
+            if path.endswith((".mp4", ".mov")):
+                await message.answer_video(file)
+            elif path.endswith((".jpg", ".jpeg", ".png")):
+                await message.answer_photo(file)
+            await msg.delete()
+            try:
+                os.remove(path)
+                shutil.rmtree("downloads", ignore_errors=True)
+            except Exception as e:
+                print(f"⚠️ Tozalashda xato: {e}")
+        else:
+            await msg.edit_text("⚠️ Yuklab bo‘lmadi. Link to‘g‘riligini tekshiring.")
     else:
-        await progress_message.edit_text("❌ Iltimos, Instagram, YouTube yoki TikTok havolasini yuboring.")
-        return
+        await msg.edit_text("❌ Faqat Instagram, YouTube yoki TikTok link yuboring.")
 
-    if media_path:
-        media_file = FSInputFile(media_path)
-
-        if media_path.endswith((".mp4", ".mov", ".avi")):
-            await message.answer_video(media_file)
-        elif media_path.endswith((".jpg", ".jpeg", ".png")):
-            await message.answer_photo(media_file)
-        elif media_path.endswith(".mp3"):
-            await message.answer_audio(media_file)
-
-        # Fayl va papkani o‘chirish
-        try:
-            os.remove(media_path)
-            shutil.rmtree("downloads", ignore_errors=True)
-        except Exception as e:
-            print(f"⚠️ O‘chirishda xato: {e}")
-
-        await progress_message.delete()
-    else:
-        await progress_message.edit_text("⚠️ Yuklab bo‘lmadi. Linkni tekshirib, qayta urinib ko‘ring.")
-
-# --- FastAPI route ---
+# FastAPI tekshiruv marshruti
 @app.get("/")
 async def root():
     return {"status": "Bot is running"}
 
-# --- Botni ishga tushirish funksiyasi ---
+# Telegram botni ishga tushirish
 async def start_bot():
     print("🤖 Bot ishga tushdi!")
     await dp.start_polling(bot)
 
-# --- Bot va API ni birgalikda ishga tushirish ---
 def run_bot():
     asyncio.run(start_bot())
 
 def run_api():
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
+# Bot va API paralel ishga tushadi
 if __name__ == "__main__":
     threading.Thread(target=run_api).start()
     run_bot()
