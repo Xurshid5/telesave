@@ -11,52 +11,22 @@ from aiogram import Router
 from fastapi import FastAPI
 import uvicorn
 import threading
-from dotenv import load_dotenv  # <-- Qo‘shildi
+from dotenv import load_dotenv
 
+# .env faylni yuklaymiz
+load_dotenv()
+TOKEN = os.getenv("TOKEN")
 
-import os
-
-import telegram
-from telegram.ext import Updater
-
-# Yangi parametr qo'shing
-updater = Updater(token='YOUR_BOT_TOKEN', use_context=True)
-bot = updater.bot
-
-# Avvalgi webhooklarni o'chirish (agar webhook ishlatgan bo'lsangiz)
-bot.delete_webhook()
-
-# Polling ni boshlash
-updater.start_polling(
-    drop_pending_updates=True,  # Qolgan updatelarni o'tkazib yuborish
-    timeout=10,
-    clean=True
-)
-
-# Agar Flask/FastAPI ishlatayotgan bo'lsangiz:
-from flask import Flask
-app = Flask(__name__)
-
-@app.route('/')
-def home():
-    return "Bot is running", 200  # UptimeRobot 200 status kutadi
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000)  # Render faqat 8000-portni qo'llab-quvvatlaydi
-
-
-# Telegram bot tokeni .env dan olinadi
-TOKEN = os.getenv("TOKEN")  # <-- O‘zgartirildi
-
+# Aiogram bot obyektlari
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 router = Router()
+dp.include_router(router)
 
-app = FastAPI()  # FastAPI ilovasi
+# FastAPI ilova
+app = FastAPI()
 
-
-# --- Yuklash funksiyalari ---
-
+# --- Yuklab olish funksiyalari ---
 async def download_instagram_media(url: str):
     loader = instaloader.Instaloader(dirname_pattern="downloads", save_metadata=False, download_comments=False)
     try:
@@ -85,21 +55,9 @@ async def download_youtube_media(url: str):
         return None
 
 async def download_tiktok_media(url: str):
-    ydl_opts = {
-        'format': 'best',
-        'outtmpl': 'downloads/%(title)s.%(ext)s',
-    }
-    try:
-        with YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(url, download=True)
-            file_path = ydl.prepare_filename(info_dict)
-            return file_path
-    except Exception as e:
-        print(f"❌ TikTokdan yuklashda xatolik: {e}")
-        return None
+    return await download_youtube_media(url)
 
-# --- Telegram bot komandalar va handlerlari ---
-
+# --- Komandalar ---
 @router.message(Command("start"))
 async def start_command(message: types.Message):
     await message.answer(
@@ -110,8 +68,6 @@ async def start_command(message: types.Message):
 @router.message()
 async def handle_media_request(message: types.Message):
     url = message.text.strip()
-
-    # "Yuklanmoqda..." xabarini yuboramiz
     progress_message = await message.answer("⏳ Yuklanmoqda, biroz kuting...")
 
     if "instagram.com" in url:
@@ -127,7 +83,6 @@ async def handle_media_request(message: types.Message):
     if media_path:
         media_file = FSInputFile(media_path)
 
-        # Mediani yuborish
         if media_path.endswith((".mp4", ".mov", ".avi")):
             await message.answer_video(media_file)
         elif media_path.endswith((".jpg", ".jpeg", ".png")):
@@ -135,40 +90,34 @@ async def handle_media_request(message: types.Message):
         elif media_path.endswith(".mp3"):
             await message.answer_audio(media_file)
 
-        # Fayl va papkani o'chirish
+        # Fayl va papkani o‘chirish
         try:
             os.remove(media_path)
-            shutil.rmtree("downloads")
+            shutil.rmtree("downloads", ignore_errors=True)
         except Exception as e:
-            print(f"⚠️ Faylni o‘chirishda xato: {e}")
+            print(f"⚠️ O‘chirishda xato: {e}")
 
-        # "Yuklanmoqda..." xabarini o'chirish
         await progress_message.delete()
     else:
         await progress_message.edit_text("⚠️ Yuklab bo‘lmadi. Linkni tekshirib, qayta urinib ko‘ring.")
 
-# --- Bot ishga tushirish funksiyasi ---
-
-async def main():
-    dp.include_router(router)
-    print("🤖 Bot ishga tushdi!")
-    await dp.start_polling(bot)
-
-# --- FastAPI route (ping uchun) ---
-
+# --- FastAPI route ---
 @app.get("/")
 async def root():
     return {"status": "Bot is running"}
 
-# --- FastAPI va botni paralel ishga tushirish ---
+# --- Botni ishga tushirish funksiyasi ---
+async def start_bot():
+    print("🤖 Bot ishga tushdi!")
+    await dp.start_polling(bot)
 
-def start_bot():
-    asyncio.run(main())
+# --- Bot va API ni birgalikda ishga tushirish ---
+def run_bot():
+    asyncio.run(start_bot())
 
-def start_api():
+def run_api():
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
 if __name__ == "__main__":
-    # FastAPI va Telegram botni alohida ipda ishga tushiramiz
-    threading.Thread(target=start_api).start()
-    start_bot()
+    threading.Thread(target=run_api).start()
+    run_bot()
