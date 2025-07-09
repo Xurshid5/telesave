@@ -62,7 +62,7 @@ async def download_tiktok_media(url: str):
 # --- Telegram komandalar ---
 @router.message(Command("start"))
 async def cmd_start(message: types.Message):
-    await message.answer("👋 Salom! Men YouTube, Instagram yoki TikTok videolarini yuklab beraman. Link yuboring.")
+    await message.answer("👋 Salom! Men Xurshid YouTube, Instagram yoki TikTok videolarini yuklab beraman. Link yuboring.")
 
 @router.message()
 async def handle_link(message: types.Message):
